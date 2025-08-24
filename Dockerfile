@@ -5,6 +5,8 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && docker-php-ext-install pdo_pgsql
 
+RUN docker-php-ext-enable pdo_pgsql
+
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 RUN curl -sS https://get.symfony.com/cli/installer | bash \
