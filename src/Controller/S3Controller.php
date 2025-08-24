@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 class S3Controller extends AbstractController
 {
@@ -73,5 +75,52 @@ class S3Controller extends AbstractController
             $this->logger->error("Failed to generate presigned URL: " . $e->getMessage());
             throw $this->createNotFoundException('Failed to generate presigned URL');
         }
+    }
+
+    #[Route('/upload-image', name: 'upload_image', methods: ['GET', 'POST'])]
+    public function uploadImage(Request $request): Response
+    {
+        $form = $this->createFormBuilder()
+            ->add('image', FileType::class, [
+                'label' => 'Upload Image'
+            ])
+            ->add('submit', SubmitType::class, ['label' => 'Upload'])
+            ->getForm();
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            try {
+                $image = $form->get('image')->getData();
+                if ($image) {
+                    $filename = uniqid() . '.' . $image->guessExtension();
+                    $awsResult = $this->s3Client->putObject([
+                        'Bucket' => $this->bucket,
+                        'Key' => $filename,
+                        'Body' => fopen($image->getPathname(), 'r'),
+                        'ContentType' => $image->getMimeType(),
+                    ]);
+
+                    // Génère une URL présignée
+                    $cmd = $this->s3Client->getCommand('GetObject', [
+                        'Bucket' => $this->bucket,
+                        'Key' => $filename,
+                    ]);
+                    $request = $this->s3Client->createPresignedRequest($cmd, '+15 minutes');
+                    $presignedUrl = (string) $request->getUri();
+
+                    $this->logger->info("Uploaded image to S3: $filename");
+                    return $this->render('s3/upload_success.html.twig', [
+                        'filename' => $filename, 
+                        'result' => $awsResult,
+                        'presignedUrl' => $presignedUrl,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                $this->logger->error("Failed to upload image: " . $e->getMessage());
+                throw $this->createNotFoundException('Failed to upload image');
+            }
+        }
+
+        return $this->render('s3/upload.html.twig', ['form' => $form->createView()]);
     }
 }
