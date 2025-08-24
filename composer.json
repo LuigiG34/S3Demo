@@ -12,11 +12,16 @@
         "doctrine/doctrine-fixtures-bundle": "^3.4",
         "doctrine/doctrine-migrations-bundle": "^3.2",
         "doctrine/orm": "^2.12",
+        "monolog/monolog": "^3.0",
+        "symfony/asset": "6.4.*",
         "symfony/console": "6.4.*",
         "symfony/dotenv": "6.4.*",
         "symfony/flex": "^2",
+        "symfony/form": "6.4.*",
         "symfony/framework-bundle": "6.4.*",
+        "symfony/monolog-bundle": "^3.10",
         "symfony/runtime": "6.4.*",
+        "symfony/twig-bundle": "6.4.*",
         "symfony/yaml": "6.4.*"
     },
     "config": {

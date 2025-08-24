@@ -1,0 +1,6 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+    <h1>Users Exported</h1>
+    <p>CSV file <strong>{{ filename }}</strong> has been uploaded to S3.</p>
+    {# <a href="{{ path('download_csv', {'filename': filename}) }}">Download CSV (valid for 10 minutes)</a> #}
+{% endblock %}
