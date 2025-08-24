@@ -56,4 +56,22 @@ class S3Controller extends AbstractController
             throw $this->createNotFoundException('Failed to export CSV');
         }
     }
+
+    #[Route('/download-csv/{filename}', name: 'download_csv')]
+    public function downloadCsv(string $filename): RedirectResponse
+    {
+        try {
+            $command = $this->s3Client->getCommand('GetObject', [
+                'Bucket' => $this->bucket,
+                'Key' => $filename,
+            ]);
+            $request = $this->s3Client->createPresignedRequest($command, '+10 minutes');
+            $presignedUrl = (string) $request->getUri();
+            $this->logger->info("Generated presigned URL for: $filename");
+            return new RedirectResponse($presignedUrl);
+        } catch (\Exception $e) {
+            $this->logger->error("Failed to generate presigned URL: " . $e->getMessage());
+            throw $this->createNotFoundException('Failed to generate presigned URL');
+        }
+    }
 }
