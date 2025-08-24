@@ -1,19 +1,14 @@
-version: '3.8'
 services:
   php:
-    image: php:8.1-fpm
+    build:
+      context: .
+      dockerfile: Dockerfile
     volumes:
       - .:/var/www/html
     depends_on:
       - db
-    environment:
-      - DATABASE_URL=postgresql://app:app@db:5432/app?serverVersion=15&charset=utf8
   db:
     image: postgres:15
-    environment:
-      - POSTGRES_USER=app
-      - POSTGRES_PASSWORD=app
-      - POSTGRES_DB=app
     volumes:
       - db-data:/var/lib/postgresql/data
   web:
